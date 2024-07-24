@@ -1,4 +1,4 @@
-# Cookbook:: rbai
+# Cookbook:: rb-ai
 # Resource:: config
 
 actions :add, :remove, :register, :deregister
