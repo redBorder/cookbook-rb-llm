@@ -39,8 +39,9 @@ action :add do
     end
 
     execute 'run_get_ai_model' do
-      command '/usr/lib/rvm/bin/rvm ruby-2.7.5@global do /usr/lib/redborder/scripts/rb_get_ai_model.rb'
+      command '/usr/lib/rvm/bin/rvm ruby-2.7.5@global do ruby /usr/lib/redborder/scripts/rb_get_ai_model.rb'
       action :nothing
+      notifies :restart, 'service[redborder-ai]', :delayed
     end
 
     service 'redborder-ai' do
