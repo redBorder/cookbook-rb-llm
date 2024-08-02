@@ -6,6 +6,7 @@ include Rbai::Helper
 action :add do
   begin
     user = new_resource.user
+    ai_selected_model = new_resource.ai_selected_model
 
     dnf_package 'redborder-ai' do
       action :upgrade
@@ -25,6 +26,21 @@ action :add do
         mode '0755'
         action :create
       end
+    end
+
+    if ai_selected_model
+      directory "/var/lib/redborder-ai/model_sources/#{ai_selected_model}" do
+        owner user
+        group group
+        mode '0755'
+        action :create
+        notifies :run, 'execute[run_get_ai_model]', :immediately
+      end
+    end
+
+    execute 'run_get_ai_model' do
+      command '/usr/lib/rvm/bin/rvm ruby-2.7.5@global do /usr/lib/redborder/scripts/rb_get_ai_model.rb'
+      action :nothing
     end
 
     service 'redborder-ai' do
