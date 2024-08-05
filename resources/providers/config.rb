@@ -19,7 +19,7 @@ action :add do
       not_if "getent passwd #{user}"
     end
 
-    %w(/etc/redborder-ai).each do |path|
+    %w(/etc/redborder-ai /var/lib/redborder-ai var/lib/redborder-ai/model_sources).each do |path|
       directory path do
         owner user
         group user
