@@ -39,7 +39,7 @@ action :add do
     ruby_block 'check_if_need_to_download_model' do
       block do
         dir_path = "/var/lib/redborder-ai/model_sources/#{ai_selected_model}"
-        if Dir.empty?(dir_path)
+        if Dir.exist?(dir_path) && Dir.empty?(dir_path)
           Chef::Log.info("#{dir_path} is empty, triggering run_get_ai_model")
           resources(execute: 'run_get_ai_model').run_action(:run)
         end
