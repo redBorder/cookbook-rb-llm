@@ -50,7 +50,7 @@ action :add do
     end
 
     execute 'run_get_ai_model' do
-      command '/usr/lib/rvm/bin/rvm ruby-2.7.5@global do /usr/lib/redborder/bin/rb_get_ai_model'
+      command "/usr/lib/redborder/bin/rb_get_ai_model #{ai_selected_model}"
       action :nothing
     end
 
