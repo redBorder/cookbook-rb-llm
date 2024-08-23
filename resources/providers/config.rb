@@ -103,11 +103,13 @@ end
 
 action :register do
   begin
+    ipaddress = new_resource.ipaddress
+
     unless node['redborder-ai']['registered']
       query = {}
       query['ID'] = "redborder-ai-#{node['hostname']}"
       query['Name'] = 'redborder-ai'
-      query['Address'] = "#{node['ipaddress']}"
+      query['Address'] = ipaddress
       query['Port'] = 50505
       json_query = Chef::JSONCompat.to_json(query)
 
@@ -119,7 +121,7 @@ action :register do
       node.normal['redborder-ai']['registered'] = true
       Chef::Log.info('redborder-ai service has been registered to consul')
     end
-  rescue => e
+  rescue StandardError => e
     Chef::Log.error(e.message)
   end
 end
