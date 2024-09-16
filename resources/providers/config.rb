@@ -7,7 +7,7 @@ action :add do
   begin
     user = new_resource.user
     ai_selected_model = new_resource.ai_selected_model
-    allowed_cpus = new_resource.allowed_cpus
+    ai_allowed_cpus = new_resource.ai_allowed_cpus
 
     dnf_package 'redborder-ai' do
       action :upgrade
@@ -85,7 +85,7 @@ action :add do
       mode '0644'
       retries 2
       cookbook 'rb-ai'
-      variables(allowed_cpus: allowed_cpus)
+      variables(ai_allowed_cpus: ai_allowed_cpus)
       notifies :run, 'execute[systemctl-daemon-reload]', :delayed
       notifies :restart, 'service[redborder-ai]', :delayed
     end
