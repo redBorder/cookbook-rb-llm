@@ -37,7 +37,7 @@ action :add do
       only_if { ai_selected_model }
     end
 
-    directory '/etc/systemd/system/redborder-ai.service.d/override.conf' do
+    directory '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
       owner user
       group group
       mode '0755'
@@ -78,8 +78,8 @@ action :add do
     end
 
     # TEMPLATES
-    template '/etc/systemd/system/redborder-ai.service.d/override.conf' do
-      source 'override.conf.erb'
+    template '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
+      source 'redborder_cpu.conf.erb'
       owner user
       group group
       mode '0644'
