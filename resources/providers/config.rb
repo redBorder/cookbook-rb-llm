@@ -6,8 +6,10 @@ include Rbai::Helper
 action :add do
   begin
     user = new_resource.user
+    group = new_resource.group
+
     ai_selected_model = new_resource.ai_selected_model
-    ai_allowed_cpus = new_resource.ai_allowed_cpus
+    cpus = new_resource.cpus
 
     dnf_package 'redborder-ai' do
       action :upgrade
@@ -37,7 +39,7 @@ action :add do
       only_if { ai_selected_model }
     end
 
-    directory '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
+    directory '/etc/systemd/system/redborder-ai.service.d' do
       owner user
       group group
       mode '0755'
@@ -79,13 +81,13 @@ action :add do
 
     # TEMPLATES
     template '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
-      source 'redborder_cpu.conf.erb'
+      source 'redborder-ai_redborder_cpu.conf.erb'
       owner user
       group group
       mode '0644'
       retries 2
       cookbook 'rb-ai'
-      variables(ai_allowed_cpus: ai_allowed_cpus)
+      variables(cpus: cpus)
       notifies :run, 'execute[systemctl-daemon-reload]', :delayed
       notifies :restart, 'service[redborder-ai]', :delayed
     end
