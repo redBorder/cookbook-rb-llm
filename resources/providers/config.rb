@@ -6,7 +6,10 @@ include Rbai::Helper
 action :add do
   begin
     user = new_resource.user
+    group = new_resource.group
+
     ai_selected_model = new_resource.ai_selected_model
+    cpus = new_resource.cpus
 
     dnf_package 'redborder-ai' do
       action :upgrade
@@ -34,6 +37,13 @@ action :add do
       mode '0755'
       action :create
       only_if { ai_selected_model }
+    end
+
+    directory '/etc/systemd/system/redborder-ai.service.d' do
+      owner user
+      group group
+      mode '0755'
+      action :create
     end
 
     ruby_block 'check_if_need_to_download_model' do
@@ -67,6 +77,24 @@ action :add do
       action :run
       notifies :run, 'ruby_block[check_if_need_to_download_model]', :immediately
       only_if { ai_selected_model }
+    end
+
+    # TEMPLATES
+    template '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
+      source 'redborder-ai_redborder_cpu.conf.erb'
+      owner user
+      group group
+      mode '0644'
+      retries 2
+      cookbook 'rb-ai'
+      variables(cpus: cpus)
+      notifies :run, 'execute[systemctl-daemon-reload]', :delayed
+      notifies :restart, 'service[redborder-ai]', :delayed
+    end
+
+    execute 'systemctl-daemon-reload' do
+      command 'systemctl daemon-reload'
+      action :nothing
     end
 
     Chef::Log.info('Redborder ai cookbook has been processed')

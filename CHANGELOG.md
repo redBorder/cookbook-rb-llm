@@ -1,6 +1,18 @@
 cookbook-rb-ai CHANGELOG
 ===============
 
+## 0.1.0
+
+  - Miguel Negrón
+    - [7215ac2] Merge pull request #4 from redBorder/feature/#18290_add_option_setup_cores_on_redborder-ai_will_use
+  - Miguel Negron
+    - [fe1552d] Adapt redborder-ai
+    - [2c2e2e6] Rename override.conf to redborder_cpu.conf
+  - Pablo Pérez
+    - [22cbf06] rename variable
+    - [6eeba50] setup drop-in
+    - [9a7e10d] Added drop in template!
+
 ## 0.0.2
 
   - Pablo Pérez
