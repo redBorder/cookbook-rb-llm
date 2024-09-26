@@ -1,6 +1,13 @@
 cookbook-rb-ai CHANGELOG
 ===============
 
+## 0.1.1
+
+  - Luis Blanco
+    - [4f1cd42] user settings for vscode ignore
+  - Rafael Gomez
+    - [54b1298] redborder-ai user can not login
+
 ## 0.1.0
 
   - Miguel Negrón
