@@ -1,6 +1,11 @@
 cookbook-rb-ai CHANGELOG
 ===============
 
+## 0.1.2
+
+  - Miguel Negrón
+    - [927bc0a] Add pre and postun to clean the cookbook
+
 ## 0.1.1
 
   - Luis Blanco
@@ -12,7 +17,7 @@ cookbook-rb-ai CHANGELOG
 
   - Miguel Negrón
     - [7215ac2] Merge pull request #4 from redBorder/feature/#18290_add_option_setup_cores_on_redborder-ai_will_use
-  - Miguel Negron
+  - Miguel Negrón
     - [fe1552d] Adapt redborder-ai
     - [2c2e2e6] Rename override.conf to redborder_cpu.conf
   - Pablo Pérez

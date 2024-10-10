@@ -25,6 +25,9 @@ chmod -R 0755 %{buildroot}%{cookbook_path}
 install -D -m 0644 README.md %{buildroot}%{cookbook_path}/README.md
 
 %pre
+if [ -d /var/chef/cookbooks/rb-ai ]; then
+    rm -rf /var/chef/cookbooks/rb-ai
+fi
 
 %post
 case "$1" in
@@ -38,6 +41,12 @@ case "$1" in
   ;;
 esac
 
+%postun
+# Deletes directory when uninstall the package
+if [ "$1" = 0 ] && [ -d /var/chef/cookbooks/rb-ai ]; then
+  rm -rf /var/chef/cookbooks/rb-ai
+fi
+
 %files
 %defattr(0755,root,root)
 %{cookbook_path}
@@ -47,5 +56,8 @@ esac
 %doc
 
 %changelog
+* Thu Oct 10 2024 Miguel Negrón <manegron@redborder.com>
+- Add pre and postun
+
 * Wed Jul 24 2024 Pablo Pérez <pperez@redborder.com>
 - first spec version
