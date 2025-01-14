@@ -9,11 +9,11 @@ action :add do
     group = new_resource.group
 
     ai_selected_model = new_resource.ai_selected_model
-    exec_start = "/usr/lib/redborder/bin/rb_ai.sh --fast --port 50505 --host 0.0.0.0"
+    exec_start = '/usr/lib/redborder/bin/rb_ai.sh --fast --port 50505 --host 0.0.0.0'
 
     # Old models must have this arg
-    if ai_selected_model == "5" || ai_selected_model == "7" || ai_selected_model == "8" || ai_selected_model == "9"
-      exec_start += " --nobrowser"
+    if ai_selected_model == '5' || ai_selected_model == '7' || ai_selected_model == '8' || ai_selected_model == '9'
+      exec_start += ' --nobrowser'
     end
 
     cpus = new_resource.cpus
