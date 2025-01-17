@@ -1,6 +1,13 @@
 cookbook-rb-ai CHANGELOG
 ===============
 
+## 0.1.3
+
+  - Pablo Pérez
+    - [7f12745] ExecStart cant be overriden - clean the value before the override
+    - [2c4197f] replaced double quote to single quote to pass the lint tests
+    - [6a9a5be] added with variables
+
 ## 0.1.2
 
   - Miguel Negrón
