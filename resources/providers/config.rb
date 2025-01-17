@@ -9,6 +9,13 @@ action :add do
     group = new_resource.group
 
     ai_selected_model = new_resource.ai_selected_model
+    exec_start = '/usr/lib/redborder/bin/rb_ai.sh --fast --port 50505 --host 0.0.0.0'
+
+    # Old models must have this arg
+    if ai_selected_model == '5' || ai_selected_model == '7' || ai_selected_model == '8' || ai_selected_model == '9'
+      exec_start += ' --nobrowser'
+    end
+
     cpus = new_resource.cpus
 
     dnf_package 'redborder-ai' do
@@ -87,7 +94,7 @@ action :add do
       mode '0644'
       retries 2
       cookbook 'rb-ai'
-      variables(cpus: cpus)
+      variables(cpus: cpus, exec_start: exec_start)
       notifies :run, 'execute[systemctl-daemon-reload]', :delayed
       notifies :restart, 'service[redborder-ai]', :delayed
     end
