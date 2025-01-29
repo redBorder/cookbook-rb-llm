@@ -11,6 +11,8 @@ action :add do
     ai_selected_model = new_resource.ai_selected_model
     exec_start = '/usr/lib/redborder/bin/rb_ai.sh --fast --port 50505 --host 0.0.0.0'
 
+    model_name = `ls /var/lib/redborder-ai/model_sources/#{ai_selected_model}`.strip
+
     # Old models must have this arg
     if ai_selected_model == '5' || ai_selected_model == '7' || ai_selected_model == '8' || ai_selected_model == '9'
       exec_start += ' --nobrowser'
@@ -56,18 +58,37 @@ action :add do
     ruby_block 'check_if_need_to_download_model' do
       block do
         dir_path = "/var/lib/redborder-ai/model_sources/#{ai_selected_model}"
+        symlink_path = '/usr/lib/redborder/bin/ai-model'
+        target_path = "/var/lib/redborder-ai/model_sources/#{ai_selected_model}/#{model_name}"
+        service_needs_restart = false
+
         if Dir.exist?(dir_path) && Dir.empty?(dir_path)
           Chef::Log.info("#{dir_path} is empty, triggering run_get_ai_model")
           resources(execute: 'run_get_ai_model').run_action(:run)
+          service_needs_restart = true
+        elsif Dir.exist?(dir_path) && !Dir.empty?(dir_path)
+          if File.symlink?(symlink_path) && File.readlink(symlink_path) == target_path
+            Chef::Log.info("Symlink already points to the correct model, skipping update.")
+          else
+            Chef::Log.info("#{dir_path} is not empty, triggering update_ai_model")
+            resources(execute: 'update_ai_model').run_action(:run)
+            service_needs_restart = true
+          end
         end
+        if service_needs_restart
+          resources(service: 'redborder-ai').run_action(:restart)
       end
       action :nothing
       only_if { ai_selected_model }
-      notifies :restart, 'service[redborder-ai]', :delayed
     end
 
     execute 'run_get_ai_model' do
       command "/usr/lib/redborder/bin/rb_get_ai_model #{ai_selected_model}"
+      action :nothing
+    end
+
+    execute 'update_ai_model' do
+      command "rm -f /usr/lib/redborder/bin/ai-model; ln -s /var/lib/redborder-ai/model_sources/#{ai_selected_model}/#{model_name} /usr/lib/redborder/bin/ai-model"
       action :nothing
     end
 
