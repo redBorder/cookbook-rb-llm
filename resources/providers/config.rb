@@ -14,7 +14,7 @@ action :add do
     model_name = `ls /var/lib/redborder-ai/model_sources/#{ai_selected_model}`.strip
 
     # Old models must have this arg
-    if ai_selected_model == '5' || ai_selected_model == '7' || ai_selected_model == '8' || ai_selected_model == '9'
+    if %w[5 7 8 9].include?(ai_selected_model)
       exec_start += ' --nobrowser'
     end
 
@@ -31,7 +31,7 @@ action :add do
       not_if "getent passwd #{user}"
     end
 
-    %w(/etc/redborder-ai /var/lib/redborder-ai var/lib/redborder-ai/model_sources).each do |path|
+    %w(/etc/redborder-ai /var/lib/redborder-ai /var/lib/redborder-ai/model_sources).each do |path|
       directory path do
         owner user
         group user
@@ -75,8 +75,7 @@ action :add do
             service_needs_restart = true
           end
         end
-        if service_needs_restart
-          resources(service: 'redborder-ai').run_action(:restart)
+        resources(service: 'redborder-ai').run_action(:restart) if service_needs_restart
       end
       action :nothing
       only_if { ai_selected_model }
@@ -162,11 +161,12 @@ action :register do
     ipaddress = new_resource.ipaddress
 
     unless node['redborder-ai']['registered']
-      query = {}
-      query['ID'] = "redborder-ai-#{node['hostname']}"
-      query['Name'] = 'redborder-ai'
-      query['Address'] = ipaddress
-      query['Port'] = 50505
+      query = {
+        'ID' => "redborder-ai-#{node['hostname']}",
+        'Name' => 'redborder-ai',
+        'Address' => ipaddress,
+        'Port' => 50505
+      }
       json_query = Chef::JSONCompat.to_json(query)
 
       execute 'Register service in consul' do
