@@ -67,7 +67,7 @@ action :add do
           resources(execute: 'run_get_ai_model').run_action(:run)
           service_needs_restart = true
         elsif Dir.exist?(dir_path) && !Dir.empty?(dir_path)
-          if File.symlink?(symlink_path) && File.readlink(symlink_path) == target_path
+          if ::File.symlink?(symlink_path) && ::File.readlink(symlink_path) == target_path
             Chef::Log.info("Symlink already points to the correct model, skipping update.")
           else
             Chef::Log.info("#{dir_path} is not empty, triggering update_ai_model")
