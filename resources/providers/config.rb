@@ -45,7 +45,7 @@ action :add do
       group group
       mode '0755'
       action :create
-      only_if { ai_selected_model }
+      only_if { !ai_selected_model.nil? && !ai_selected_model.empty? }
     end
 
     directory '/etc/systemd/system/redborder-ai.service.d' do
@@ -78,7 +78,7 @@ action :add do
         resources(service: 'redborder-ai').run_action(:restart) if service_needs_restart
       end
       action :nothing
-      only_if { ai_selected_model }
+      only_if { !ai_selected_model.nil? && !ai_selected_model.empty? }
     end
 
     execute 'run_get_ai_model' do
@@ -103,7 +103,7 @@ action :add do
       block {}
       action :run
       notifies :run, 'ruby_block[check_if_need_to_download_model]', :immediately
-      only_if { ai_selected_model }
+      only_if { !ai_selected_model.nil? && !ai_selected_model.empty? }
     end
 
     # TEMPLATES
