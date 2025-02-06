@@ -1,18 +1,18 @@
 # Cookbook:: rb-llm
 # Provider:: config
 
-include Rbai::Helper
+include Rbllm::Helper
 
 action :add do
   begin
     user = new_resource.user
     group = new_resource.group
 
-    ai_selected_model = new_resource.ai_selected_model
-    exec_start = '/usr/lib/redborder/bin/rb_ai.sh --fast --port 50505 --host 0.0.0.0'
+    llm_selected_model = new_resource.llm_selected_model
+    exec_start = '/usr/lib/redborder/bin/rb_llm.sh --fast --port 50505 --host 0.0.0.0'
 
     # Old models must have this arg
-    if ai_selected_model == '5' || ai_selected_model == '7' || ai_selected_model == '8' || ai_selected_model == '9'
+    if llm_selected_model == '5' || llm_selected_model == '7' || llm_selected_model == '8' || llm_selected_model == '9'
       exec_start += ' --nobrowser'
     end
 
@@ -38,12 +38,12 @@ action :add do
       end
     end
 
-    directory "/var/lib/redborder-llm/model_sources/#{ai_selected_model}" do
+    directory "/var/lib/redborder-llm/model_sources/#{llm_selected_model}" do
       owner user
       group group
       mode '0755'
       action :create
-      only_if { ai_selected_model }
+      only_if { llm_selected_model }
     end
 
     directory '/etc/systemd/system/redborder-llm.service.d' do
@@ -55,19 +55,19 @@ action :add do
 
     ruby_block 'check_if_need_to_download_model' do
       block do
-        dir_path = "/var/lib/redborder-llm/model_sources/#{ai_selected_model}"
+        dir_path = "/var/lib/redborder-llm/model_sources/#{llm_selected_model}"
         if Dir.exist?(dir_path) && Dir.empty?(dir_path)
-          Chef::Log.info("#{dir_path} is empty, triggering run_get_ai_model")
-          resources(execute: 'run_get_ai_model').run_action(:run)
+          Chef::Log.info("#{dir_path} is empty, triggering run_get_llm_model")
+          resources(execute: 'run_get_llm_model').run_action(:run)
         end
       end
       action :nothing
-      only_if { ai_selected_model }
+      only_if { llm_selected_model }
       notifies :restart, 'service[redborder-llm]', :delayed
     end
 
-    execute 'run_get_ai_model' do
-      command "/usr/lib/redborder/bin/rb_get_ai_model #{ai_selected_model}"
+    execute 'run_get_llm_model' do
+      command "/usr/lib/redborder/bin/rb_get_llm_model #{llm_selected_model}"
       action :nothing
     end
 
@@ -83,12 +83,12 @@ action :add do
       block {}
       action :run
       notifies :run, 'ruby_block[check_if_need_to_download_model]', :immediately
-      only_if { ai_selected_model }
+      only_if { llm_selected_model }
     end
 
     # TEMPLATES
     template '/etc/systemd/system/redborder-llm.service.d/redborder_cpu.conf' do
-      source 'redborder-ai_redborder_cpu.conf.erb'
+      source 'redborder-llm_redborder_cpu.conf.erb'
       owner user
       group group
       mode '0644'
