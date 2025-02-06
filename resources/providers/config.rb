@@ -1,4 +1,4 @@
-# Cookbook:: rb-ai
+# Cookbook:: rb-llm
 # Provider:: config
 
 include Rbai::Helper
@@ -18,7 +18,7 @@ action :add do
 
     cpus = new_resource.cpus
 
-    dnf_package 'redborder-ai' do
+    dnf_package 'redborder-llm' do
       action :upgrade
       flush_cache [:before]
     end
@@ -29,7 +29,7 @@ action :add do
       not_if "getent passwd #{user}"
     end
 
-    %w(/etc/redborder-ai /var/lib/redborder-ai var/lib/redborder-ai/model_sources).each do |path|
+    %w(/etc/redborder-llm /var/lib/redborder-llm var/lib/redborder-llm/model_sources).each do |path|
       directory path do
         owner user
         group user
@@ -38,7 +38,7 @@ action :add do
       end
     end
 
-    directory "/var/lib/redborder-ai/model_sources/#{ai_selected_model}" do
+    directory "/var/lib/redborder-llm/model_sources/#{ai_selected_model}" do
       owner user
       group group
       mode '0755'
@@ -46,7 +46,7 @@ action :add do
       only_if { ai_selected_model }
     end
 
-    directory '/etc/systemd/system/redborder-ai.service.d' do
+    directory '/etc/systemd/system/redborder-llm.service.d' do
       owner user
       group group
       mode '0755'
@@ -55,7 +55,7 @@ action :add do
 
     ruby_block 'check_if_need_to_download_model' do
       block do
-        dir_path = "/var/lib/redborder-ai/model_sources/#{ai_selected_model}"
+        dir_path = "/var/lib/redborder-llm/model_sources/#{ai_selected_model}"
         if Dir.exist?(dir_path) && Dir.empty?(dir_path)
           Chef::Log.info("#{dir_path} is empty, triggering run_get_ai_model")
           resources(execute: 'run_get_ai_model').run_action(:run)
@@ -63,7 +63,7 @@ action :add do
       end
       action :nothing
       only_if { ai_selected_model }
-      notifies :restart, 'service[redborder-ai]', :delayed
+      notifies :restart, 'service[redborder-llm]', :delayed
     end
 
     execute 'run_get_ai_model' do
@@ -71,8 +71,8 @@ action :add do
       action :nothing
     end
 
-    service 'redborder-ai' do
-      service_name 'redborder-ai'
+    service 'redborder-llm' do
+      service_name 'redborder-llm'
       ignore_failure true
       supports status: true, restart: true, enable: true
       action [:start, :enable]
@@ -87,16 +87,16 @@ action :add do
     end
 
     # TEMPLATES
-    template '/etc/systemd/system/redborder-ai.service.d/redborder_cpu.conf' do
+    template '/etc/systemd/system/redborder-llm.service.d/redborder_cpu.conf' do
       source 'redborder-ai_redborder_cpu.conf.erb'
       owner user
       group group
       mode '0644'
       retries 2
-      cookbook 'rb-ai'
+      cookbook 'rb-llm'
       variables(cpus: cpus, exec_start: exec_start)
       notifies :run, 'execute[systemctl-daemon-reload]', :delayed
-      notifies :restart, 'service[redborder-ai]', :delayed
+      notifies :restart, 'service[redborder-llm]', :delayed
     end
 
     execute 'systemctl-daemon-reload' do
@@ -104,7 +104,7 @@ action :add do
       action :nothing
     end
 
-    Chef::Log.info('Redborder ai cookbook has been processed')
+    Chef::Log.info('Redborder llm cookbook has been processed')
   rescue => e
     Chef::Log.error(e.message)
   end
@@ -112,25 +112,25 @@ end
 
 action :remove do
   begin
-    service 'redborder-ai' do
-      service_name 'redborder-ai'
+    service 'redborder-llm' do
+      service_name 'redborder-llm'
       ignore_failure true
       supports status: true, enable: true
       action [:stop, :disable]
     end
 
-    %w(/etc/redborder-ai).each do |path|
+    %w(/etc/redborder-llm).each do |path|
       directory path do
         recursive true
         action :delete
       end
     end
 
-    dnf_package 'redborder-ai' do
+    dnf_package 'redborder-llm' do
       action :remove
     end
 
-    Chef::Log.info('Redborder ai cookbook has been removed')
+    Chef::Log.info('Redborder llm cookbook has been removed')
   rescue => e
     Chef::Log.error(e.message)
   end
@@ -140,10 +140,10 @@ action :register do
   begin
     ipaddress = new_resource.ipaddress
 
-    unless node['redborder-ai']['registered']
+    unless node['redborder-llm']['registered']
       query = {}
-      query['ID'] = "redborder-ai-#{node['hostname']}"
-      query['Name'] = 'redborder-ai'
+      query['ID'] = "redborder-llm-#{node['hostname']}"
+      query['Name'] = 'redborder-llm'
       query['Address'] = ipaddress
       query['Port'] = 50505
       json_query = Chef::JSONCompat.to_json(query)
@@ -153,8 +153,8 @@ action :register do
         action :nothing
       end.run_action(:run)
 
-      node.normal['redborder-ai']['registered'] = true
-      Chef::Log.info('redborder-ai service has been registered to consul')
+      node.normal['redborder-llm']['registered'] = true
+      Chef::Log.info('redborder-llm service has been registered to consul')
     end
   rescue StandardError => e
     Chef::Log.error(e.message)
@@ -163,14 +163,14 @@ end
 
 action :deregister do
   begin
-    if node['redborder-ai']['registered']
+    if node['redborder-llm']['registered']
       execute 'Deregister service in consul' do
-        command "curl -X PUT http://localhost:8500/v1/agent/service/deregister/redborder-ai-#{node['hostname']} &>/dev/null"
+        command "curl -X PUT http://localhost:8500/v1/agent/service/deregister/redborder-llm-#{node['hostname']} &>/dev/null"
         action :nothing
       end.run_action(:run)
 
-      node.normal['redborder-ai']['registered'] = false
-      Chef::Log.info('redborder-ai service has been deregistered from consul')
+      node.normal['redborder-llm']['registered'] = false
+      Chef::Log.info('redborder-llm service has been deregistered from consul')
     end
   rescue => e
     Chef::Log.error(e.message)

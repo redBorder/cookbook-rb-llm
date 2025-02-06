@@ -1,4 +1,4 @@
-# Cookbook:: rb-ai
+# Cookbook:: rb-llm
 # Recipe:: default
 # Copyright:: 2024, redborder
 # License:: Affero General Public License, Version 3
