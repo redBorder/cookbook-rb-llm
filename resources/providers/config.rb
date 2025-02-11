@@ -18,6 +18,26 @@ action :add do
 
     cpus = new_resource.cpus
 
+    # Remove redborder-ai to add redborder-llm
+    service 'redborder-ai' do
+      service_name 'redborder-ai'
+      ignore_failure true
+      supports status: true, enable: true
+      action [:stop, :disable]
+    end
+
+    %w(/etc/redborder-ai).each do |path|
+      directory path do
+        recursive true
+        action :delete
+      end
+    end
+
+    dnf_package 'redborder-ai' do
+      action :remove
+    end
+
+    # Add redborder-llm
     dnf_package 'redborder-llm' do
       action :upgrade
       flush_cache [:before]
