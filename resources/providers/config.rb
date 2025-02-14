@@ -9,12 +9,7 @@ action :add do
     group = new_resource.group
 
     llm_selected_model = new_resource.llm_selected_model
-    exec_start = '/usr/lib/redborder/bin/rb_llm.sh --fast --port 50505 --host 0.0.0.0'
-
-    # Old models must have this arg
-    if llm_selected_model == '5' || llm_selected_model == '7' || llm_selected_model == '8' || llm_selected_model == '9'
-      exec_start += ' --nobrowser'
-    end
+    model_name = `ls /var/lib/redborder-llm/model_sources/#{llm_selected_model}`.strip
 
     cpus = new_resource.cpus
 
@@ -63,7 +58,7 @@ action :add do
       group group
       mode '0755'
       action :create
-      only_if { llm_selected_model }
+      only_if { !llm_selected_model.nil? && !llm_selected_model.empty? }
     end
 
     directory '/etc/systemd/system/redborder-llm.service.d' do
@@ -76,18 +71,36 @@ action :add do
     ruby_block 'check_if_need_to_download_model' do
       block do
         dir_path = "/var/lib/redborder-llm/model_sources/#{llm_selected_model}"
+        symlink_path = '/usr/lib/redborder/bin/llm-model'
+        target_path = "/var/lib/redborder-llm/model_sources/#{llm_selected_model}/#{model_name}"
+        service_needs_restart = false
+
         if Dir.exist?(dir_path) && Dir.empty?(dir_path)
           Chef::Log.info("#{dir_path} is empty, triggering run_get_llm_model")
           resources(execute: 'run_get_llm_model').run_action(:run)
+          service_needs_restart = true
+        elsif Dir.exist?(dir_path) && !Dir.empty?(dir_path)
+          if ::File.symlink?(symlink_path) && ::File.readlink(symlink_path) == target_path
+            Chef::Log.info('Symlink already points to the correct model, skipping update.')
+          else
+            Chef::Log.info("#{dir_path} is not empty, triggering update_llm_model")
+            resources(execute: 'update_llm_model').run_action(:run)
+            service_needs_restart = true
+          end
         end
+        resources(service: 'redborder-llm').run_action(:restart) if service_needs_restart
       end
       action :nothing
-      only_if { llm_selected_model }
-      notifies :restart, 'service[redborder-llm]', :delayed
+      only_if { !llm_selected_model.nil? && !llm_selected_model.empty? }
     end
 
     execute 'run_get_llm_model' do
       command "/usr/lib/redborder/bin/rb_get_llm_model #{llm_selected_model}"
+      action :nothing
+    end
+
+    execute 'update_llm_model' do
+      command "rm -f /usr/lib/redborder/bin/llm-model; ln -s /var/lib/redborder-llm/model_sources/#{llm_selected_model}/#{model_name} /usr/lib/redborder/bin/llm-model"
       action :nothing
     end
 
@@ -103,7 +116,7 @@ action :add do
       block {}
       action :run
       notifies :run, 'ruby_block[check_if_need_to_download_model]', :immediately
-      only_if { llm_selected_model }
+      only_if { !llm_selected_model.nil? && !llm_selected_model.empty? }
     end
 
     # TEMPLATES
@@ -114,7 +127,7 @@ action :add do
       mode '0644'
       retries 2
       cookbook 'rb-llm'
-      variables(cpus: cpus, exec_start: exec_start)
+      variables(cpus: cpus)
       notifies :run, 'execute[systemctl-daemon-reload]', :delayed
       notifies :restart, 'service[redborder-llm]', :delayed
     end
@@ -124,7 +137,7 @@ action :add do
       action :nothing
     end
 
-    Chef::Log.info('Redborder llm cookbook has been processed')
+    Chef::Log.info('Redborder ai cookbook has been processed')
   rescue => e
     Chef::Log.error(e.message)
   end
@@ -161,11 +174,12 @@ action :register do
     ipaddress = new_resource.ipaddress
 
     unless node['redborder-llm']['registered']
-      query = {}
-      query['ID'] = "redborder-llm-#{node['hostname']}"
-      query['Name'] = 'redborder-llm'
-      query['Address'] = ipaddress
-      query['Port'] = 50505
+      query = {
+        'ID' => "redborder-llm-#{node['hostname']}",
+        'Name' => 'redborder-llm',
+        'Address' => ipaddress,
+        'Port' => 50505,
+      }
       json_query = Chef::JSONCompat.to_json(query)
 
       execute 'Register service in consul' do
