@@ -1,6 +1,15 @@
 cookbook-rb-ai CHANGELOG
 ===============
 
+## 0.1.4
+  - Pablo Pérez
+    - [aaa2eb7] Rubocop made me do this
+    - [52310c1] deleted ExecStart in drop-in
+    - [40961da] refactor to avoid warnings
+    - [6571629] Using default ruby File instead Chef::File
+    - [2e5c134] Fix syntax error + little refactor
+    - [4caaa53] check_if_need_to_download_model now restarts the service only if is a different model
+
 ## 0.1.3
 
   - Pablo Pérez
