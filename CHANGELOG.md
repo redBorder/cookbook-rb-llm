@@ -1,6 +1,14 @@
 cookbook-rb-llm CHANGELOG
 ===============
 
+## 0.2.0
+
+  - Pablo Pérez
+    - [6b63462] Delete and disable redborder-ai if exists
+    - [5146a1b] rename spec file
+    - [6e4e1ed] rename redborder-ai to redborder-llm
+    - [87d6d42] rename redborder-ai to redborder-llm and rb-ai to rb-llm
+
 ## 0.1.4
   - Pablo Pérez
     - [aaa2eb7] Rubocop made me do this
