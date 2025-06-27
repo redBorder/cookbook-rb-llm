@@ -35,7 +35,6 @@ action :add do
     # Add redborder-llm
     dnf_package 'redborder-llm' do
       action :upgrade
-      flush_cache [:before]
     end
 
     execute 'create_user' do
