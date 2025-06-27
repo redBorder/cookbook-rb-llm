@@ -1,6 +1,11 @@
 cookbook-rb-llm CHANGELOG
 ===============
 
+## 0.2.1
+
+  - nilsver
+    - [f79a500] remove flush cache
+
 ## 0.2.0
 
   - Pablo Pérez
